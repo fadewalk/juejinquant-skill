@@ -1,14 +1,29 @@
 # juejinquant-skill
 
-> **WorkBuddy 上首个把"掘金量化 GM SDK"做成 AI Agent 可调用技能的开源项目** —— 自然语言生成策略 + 完整 API 字典 + 28 条实战踩坑经验，三件套打包给你。
+> **把"掘金量化 GM SDK"做成 AI Agent 可调用技能的开源项目** —— 自然语言生成策略 + 完整 API 字典 + 28 条实战踩坑经验，三件套打包给你。
 
 [![License: Personal Use](https://img.shields.io/badge/License-Personal_Use-blue.svg)](#-许可证)
 [![Python](https://img.shields.io/badge/Python-3.7%2B-blue.svg)](https://www.python.org/)
 [![GM SDK](https://img.shields.io/badge/GM_SDK-v3.0.0-orange.svg)](https://www.myquant.cn/)
-[![WorkBuddy Skill](https://img.shields.io/badge/WorkBuddy-Skill-purple.svg)](https://www.codebuddy.cn/)
+[![Anthropic Skill](https://img.shields.io/badge/Anthropic-Skill-blueviolet.svg)](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview)
+[![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents_SDK-412991.svg)](https://developers.openai.com/api/docs/agents-sdk/skills)
 [![Maintained](https://img.shields.io/badge/Maintained-yes-green.svg)]()
 
-[掘金量化官网](https://www.myquant.cn/) · [API 文档](https://www.myquant.cn/docs/) · [WorkBuddy](https://www.codebuddy.cn/) · [报告问题](https://github.com/fadewalk/juejinquant-skill/issues)
+[掘金量化官网](https://www.myquant.cn/) · [API 文档](https://www.myquant.cn/docs/) · [Anthropic Skills 规范](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) · [OpenAI Agents SDK](https://developers.openai.com/api/docs/agents-sdk/skills) · [WorkBuddy](https://www.codebuddy.cn/) · [报告问题](https://github.com/fadewalk/juejinquant-skill/issues)
+
+---
+
+## 🌐 平台兼容性
+
+本仓库采用**双标准 Agent Skill 格式**，不绑定任何单一平台：
+
+| 平台 | 加载方式 | 说明 |
+|------|---------|------|
+| **Anthropic Claude** | `SKILL.md` 前置 `name` + `description` frontmatter | 符合 [Anthropic Skills 官方规范](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) |
+| **OpenAI ChatGPT Apps / Agents SDK** | `agents/openai.yaml` 的 `display_name` + `short_description` + `default_prompt` | 符合 [OpenAI Agents SDK Skill manifest](https://developers.openai.com/api/docs/agents-sdk/skills) |
+| **WorkBuddy** | 自动识别 `SKILL.md` | 见 [codebuddy.cn](https://www.codebuddy.cn/) |
+| **Cursor / Cline / Continue / Aider / Roo Code** | `SKILL.md` 通用格式 | 同 Anthropic 规范 |
+| **裸 Python（不需要任何 Agent）** | 直接 `python scripts/*.py` | 13 个脚本都是独立可运行的纯 Python 程序 |
 
 ---
 
@@ -64,48 +79,27 @@ python scripts/run_strategy.py \
 
 ## 🚀 快速开始
 
-### 1. 安装 WorkBuddy Skill
+### 方式 A：作为 AI Agent Skill 加载（推荐）
+
+#### A1. WorkBuddy / Cursor / Cline / Continue / Aider / Roo Code（Anthropic Skills 格式）
 
 ```bash
-# 用户级（推荐）
-cp -r juejinquant ~/.workbuddy/skills/
+# 用户级（推荐）—— 全局可用
+cp -r juejinquant ~/.workbuddy/skills/         # WorkBuddy
+cp -r juejinquant ~/.claude/skills/             # Claude Desktop
+cp -r juejinquant ~/.config/anthropic/skills/   # Linux Claude
+cp -r juejinquant ~/.cursor/skills/             # Cursor
+cp -r juejinquant ~/.continue/skills/           # Continue
+cp -r juejinquant ~/.clinerules/skills/         # Cline
+cp -r juejinquant ~/.aider/skills/              # Aider
 
-# 项目级
-cp -r juejinquant <your-project>/.workbuddy/skills/
+# 项目级 —— 仅当前项目可见
+mkdir -p .workbuddy/skills && cp -r juejinquant .workbuddy/skills/
+mkdir -p .claude/skills     && cp -r juejinquant .claude/skills/
+mkdir -p .cursor/skills     && cp -r juejinquant .cursor/skills/
 ```
 
-### 2. 安装掘金量化 SDK
-
-```bash
-pip install gm.api
-```
-
-### 3. 设置 Token（去掘金终端申请）
-
-```python
-# 进入掘金终端 → 策略 → 新建策略 → 复制 strategy_id 和 token
-# 或参考：https://www.myquant.cn/docs/
-```
-
-### 4. 跑第一个策略
-
-```bash
-# 环境检测
-python scripts/check_import.py
-
-# 跑双均线回测
-python scripts/run_strategy.py \
-    --strategy scripts/strategy_ma_cross.py \
-    --strategy-id my_first_strategy \
-    --mode backtest \
-    --token YOUR_GM_TOKEN
-```
-
-回测完成后登录 https://www.myquant.cn → 策略列表 → 查看完整绩效。
-
-### 5. 在 WorkBuddy 中使用
-
-直接用自然语言：
+重启对应 IDE/Agent 后，用自然语言对话即可触发：
 
 > "帮我写一个 A 股 ETF 动量轮动策略，10 个交易日调仓一次"
 
@@ -115,16 +109,66 @@ python scripts/run_strategy.py \
 
 Skill 会自动路由到对应的章节或踩坑库，**无需手动翻文档**。
 
+#### A2. ChatGPT Apps / OpenAI Agents SDK（OpenAI manifest 格式）
+
+`agents/openai.yaml` 已经按 OpenAI 官方 Skill manifest 规范写好，直接把它和整个目录打包部署到你的 ChatGPT App 后端，或在你的 OpenAI Agents 项目中作为 skill 资源引入：
+
+```yaml
+# 示例：在你的 OpenAI Agents 项目中引用
+from openai_agents import Agent, Skill
+
+agent = Agent(
+    name="量化助手",
+    skills=[
+        Skill.from_directory("./juejinquant"),  # 自动识别 agents/openai.yaml
+    ],
+)
+```
+
+### 方式 B：作为普通 Python 库使用（不需要任何 Agent）
+
+```bash
+pip install gm.api
+
+# 1. 环境检测
+python scripts/check_import.py
+
+# 2. 看 API 速查
+cat references/quick-reference.md
+
+# 3. 跑双均线回测
+python scripts/run_strategy.py \
+    --strategy scripts/strategy_ma_cross.py \
+    --strategy-id my_first_strategy \
+    --mode backtest \
+    --token YOUR_GM_TOKEN
+```
+
+回测完成后登录 https://www.myquant.cn → 策略列表 → 查看完整绩效。
+
+### 安装掘金量化 SDK
+
+```bash
+pip install gm.api
+```
+
+### 设置 Token（去掘金终端申请）
+
+```python
+# 进入掘金终端 → 策略 → 新建策略 → 复制 strategy_id 和 token
+# 或参考：https://www.myquant.cn/docs/
+```
+
 ---
 
 ## 📁 项目结构
 
 ```
 juejinquant/
-├── SKILL.md                          # 主技能说明（必读，含意图路由表）
+├── SKILL.md                          # 主技能说明（Anthropic Skills 规范，含意图路由表）
 ├── README.md                         # 本文件
 ├── agents/
-│   └── openai.yaml                   # OpenAI 兼容 agent 配置
+│   └── openai.yaml                   # OpenAI Agents SDK 兼容配置
 ├── assets/                           # 资源占位目录
 ├── references/                       # 27 篇 GM SDK API 参考文档
 │   ├── 01-quick-start.md             # 快速开始
@@ -183,7 +227,7 @@ juejinquant/
 - ✅ 历史行情**回测**、实时行情**订阅**、模拟盘 / 实盘**交易**
 - ✅ **事件驱动**编程（`subscribe` / `schedule` / `on_tick` / `on_bar` / `on_order_status`）
 - ✅ 订单 / 账户 / 持仓查询，**算法单**（TWAP / VWAP / Iceberg）
-- ✅ 用 AI Agent（WorkBuddy / Claude / GPT）做**自然语言→策略**生成
+- ✅ 用 AI Agent（Claude / ChatGPT / WorkBuddy / Cursor / Cline）做**自然语言→策略**生成
 - ✅ L2 行情、融资融券、可转债、付费数据 API 高级用法
 
 ---
@@ -196,16 +240,17 @@ juejinquant/
 | 实战经验 | 无 | **28 条踩坑库** |
 | 代码示例 | 零散、签名级 | **6 大完整可运行模板** |
 | 排错支持 | 论坛零散问答 | `pitfalls.md` 系统化收录 |
-| AI Agent 适配 | 未设计 | **专为 WorkBuddy 优化** |
+| AI Agent 适配 | 未设计 | **Anthropic + OpenAI 双标准** Skill manifest |
 
 ---
 
 ## 👥 适用人群
 
 - ✅ 用自然语言做 A 股 / 期货 / ETF / 可转债策略的**研究员与量化开发者**
-- ✅ 想用 AI Agent（WorkBuddy / Claude / GPT）做量化策略生成的**团队负责人**
+- ✅ 想用 AI Agent（Claude / ChatGPT / WorkBuddy）做量化策略生成的**团队负责人**
 - ✅ 需要查 GM SDK API 但又怕踩坑的**中高级用户**
 - ✅ 想把 AI Agent 接入掘金终端的**个人投资者**
+- ✅ 不想用 Agent、只想直接 `python xxx.py` 跑回测的**纯 Python 用户**
 
 ---
 
@@ -216,6 +261,7 @@ juejinquant/
 - 新的策略模板（CTA / 套利 / 期权希腊字母 / 机器学习预测等）
 - 新的踩坑案例（在 `pitfalls.md` 里追加）
 - 新的 references 章节翻译或补充
+- 其他 Agent 平台的 manifest 适配（如 Google Gemini、Meta Llama Agents、阿里通义千问等）
 
 ---
 
@@ -224,6 +270,7 @@ juejinquant/
 - **47 个源文件** + README.md + .gitignore + assets/
 - **27 篇 references** + 6 篇 examples + 13 个 scripts
 - **版本**：v3.0.0（架构级重构，与 gm-quant v2.1.0 / myquant v1.2.0 深度融合）
+- **平台**：兼容 Anthropic Claude、OpenAI ChatGPT / Agents SDK、WorkBuddy、Cursor、Cline、Continue、Aider、Roo Code 等所有支持 `SKILL.md` 规范的 Agent 平台
 
 ---
 
@@ -239,6 +286,8 @@ juejinquant/
 
 - 掘金量化官网：https://www.myquant.cn/
 - 掘金量化 API 文档：https://www.myquant.cn/docs/
-- WorkBuddy 官网：https://www.codebuddy.cn/
+- Anthropic Skills 规范：https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview
+- OpenAI Agents SDK Skills：https://developers.openai.com/api/docs/agents-sdk/skills
+- WorkBuddy：https://www.codebuddy.cn/
 - 上游 gm-quant v2.1.0
 - 上游 myquant v1.2.0
